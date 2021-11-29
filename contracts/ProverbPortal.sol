@@ -4,17 +4,34 @@ pragma solidity ^0.8.4;
 import "hardhat/console.sol";
 
 contract ProverbPortal {
-  uint public proverbs = 0;
-  mapping (address => uint256) public persons;
+    uint256 public proverbsCount = 0;
+    mapping(address => uint256) public persons;
 
-  function sayProverb() public {
-    proverbs++;
-    persons[msg.sender]++;
-    console.log("%s has say an proverb!", msg.sender);
-  }
+    event NewProverb(address indexed from, uint256 timestamp, string message);
 
-  function getTotalproverbs() public view returns (uint256) {
-    console.log("We have %d total proverbs!", proverbs);
-    return proverbs;
-  }
+    struct Proverb {
+        address from;
+        uint256 timestamp;
+        string message;
+    }
+
+    Proverb[] public proverbs;
+
+    function sayProverb(string memory _message) public {
+        proverbsCount++;
+        persons[msg.sender]++;
+
+        proverbs.push(Proverb(msg.sender, block.timestamp, _message));
+
+        emit NewProverb(msg.sender, block.timestamp, _message);
+    }
+
+    function getProverbs() public view returns (Proverb[] memory) {
+        return proverbs;
+    }
+
+    function getTotalProverbs() public view returns (uint256) {
+        console.log("We have %d total proverbs!", proverbsCount);
+        return proverbsCount;
+    }
 }
