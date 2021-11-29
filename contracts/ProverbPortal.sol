@@ -5,7 +5,8 @@ import "hardhat/console.sol";
 
 contract ProverbPortal {
     uint256 public proverbsCount = 0;
-    mapping(address => uint256) public persons;
+
+    uint256 private seed;
 
     event NewProverb(address indexed from, uint256 timestamp, string message);
 
@@ -17,11 +18,40 @@ contract ProverbPortal {
 
     Proverb[] public proverbs;
 
+    mapping(address => uint256) public lastProverbAt;
+
+    constructor() payable {
+        console.log("ProverbPortal constructor");
+
+        seed = (block.timestamp + block.difficulty) % 100;
+    }
+
     function sayProverb(string memory _message) public {
+        require(
+            lastProverbAt[msg.sender] + 1 minutes < block.timestamp,
+            "You can only say a proverb every 15 minutes"
+        );
+
+        lastProverbAt[msg.sender] = block.timestamp;
         proverbsCount++;
-        persons[msg.sender]++;
 
         proverbs.push(Proverb(msg.sender, block.timestamp, _message));
+
+        seed = (block.timestamp + block.difficulty + seed) % 100;
+
+        console.log("Random # generated: %d", seed);
+
+        if (seed <= 50) {
+            console.log("%s won!", msg.sender);
+
+            uint256 prizeAmount = 0.0001 ether;
+            require(
+                prizeAmount <= address(this).balance,
+                "Trying to withdraw more money than the contract has.0"
+            );
+            (bool success, ) = (msg.sender).call{value: prizeAmount}("");
+            require(success, "Failed to withdraw money from contract.");
+        }
 
         emit NewProverb(msg.sender, block.timestamp, _message);
     }
