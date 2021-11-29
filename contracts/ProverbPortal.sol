@@ -29,7 +29,7 @@ contract ProverbPortal {
     function sayProverb(string memory _message) public {
         require(
             lastProverbAt[msg.sender] + 1 minutes < block.timestamp,
-            "You can only say a proverb every 15 minutes"
+            "You can only say a proverb every 1 minute"
         );
 
         lastProverbAt[msg.sender] = block.timestamp;
